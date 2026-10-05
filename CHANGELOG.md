@@ -15,6 +15,20 @@ per-file diff commands.
 
 _Changes landed on `master` since the last release will be listed here._
 
+### Added
+- `reed-search` portal skill: UK jobs via reed.co.uk's official Jobseeker API
+  (search + detail; free key in `REED_API_KEY`).
+- `adzuna-search` portal skill: UK (default) and other markets via Adzuna's
+  official Jobs API (search + categories; free `ADZUNA_APP_ID` / `ADZUNA_APP_KEY`).
+- `.env.example`; `.env` is gitignored and enforced by `tools/security_guards.py`.
+
+### Changed
+- `linkedin-search` backs off slowly on throttling (2s → 15s, honours
+  `Retry-After`) and exits with `RATE_LIMITED` instead of a generic failure.
+  The old fast retry loop kept LinkedIn's throttle tripped.
+- `/scrape` runs each portal's queries sequentially (still parallel across
+  portals) and treats `RATE_LIMITED` / `NO_API_KEY` as skip-and-report.
+
 ## [1.0.0] - 2026-07-22
 
 First tagged release. This marks the framework as stable and gives forks a described

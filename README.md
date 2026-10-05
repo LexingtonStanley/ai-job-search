@@ -81,7 +81,7 @@ cd ai-job-search
 PowerShell:
 
 ```powershell
-$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search", "freehire-search")
+$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search", "freehire-search", "reed-search", "adzuna-search")
 foreach ($tool in $tools) {
   Push-Location ".agents/skills/$tool/cli"
   bun install
@@ -92,12 +92,14 @@ foreach ($tool in $tools) {
 Bash / zsh / Git Bash:
 
 ```bash
-for tool in jobbank-search jobdanmark-search jobindex-search jobnet-search linkedin-search freehire-search; do
+for tool in jobbank-search jobdanmark-search jobindex-search jobnet-search linkedin-search freehire-search reed-search adzuna-search; do
   (cd .agents/skills/$tool/cli && bun install)
 done
 ```
 
-For `linkedin-search` and `freehire-search` the install is optional: both have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+For `linkedin-search`, `freehire-search`, `reed-search` and `adzuna-search` the install is optional: they have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+
+`reed-search` and `adzuna-search` (UK job boards, via their official APIs) each need a free key. Copy `.env.example` to `.env` at the repo root and fill in `REED_API_KEY` (from <https://www.reed.co.uk/developers/jobseeker>) and `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` (from <https://developer.adzuna.com>). `.env` is gitignored. Without keys those two portals report `NO_API_KEY` and `/scrape` carries on with the rest.
 
 ### 3. Set up your profile
 
@@ -188,7 +190,9 @@ ai-job-search/
 │   ├── jobindex-search/               # Jobindex.dk (Denmark)
 │   ├── jobnet-search/                 # Jobnet.dk (Denmark, government portal)
 │   ├── linkedin-search/               # LinkedIn public job listings (country-agnostic)
-│   └── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
+│   ├── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
+│   ├── reed-search/                   # reed.co.uk (UK, official API, free key)
+│   └── adzuna-search/                 # Adzuna aggregator (UK default + other markets, official API, free key)
 ├── cv/
 │   └── main_example.tex               # moderncv LaTeX template
 ├── cover_letters/
@@ -301,6 +305,11 @@ For **country-agnostic** starting points outside Denmark, the repo ships two por
 
 - **`linkedin-search`** — built on LinkedIn's public, unauthenticated `jobs-guest` endpoints. Field-agnostic, **zero runtime dependencies** (runs with just `bun`), and takes the search location as an explicit flag, so it works for any market out of the box (`-l "Berlin, Germany"`, `-l "Mumbai, Maharashtra, India"`, `-l "Remote"`, …). Intended for **personal use only** — automated access is against LinkedIn's Terms of Service, so keep volume low. See `.agents/skills/linkedin-search/SKILL.md`.
 - **`freehire-search`** — queries the [freehire.me](https://freehire.me) aggregator's public REST API (JSON, no API key). Tech-focused (software, data, engineering, DevOps, remote), multi-market via facet flags (`--region`, `--country`, `--remote`), and **zero runtime dependencies**. Unlike the HTML-scraping Danish portals, results come back structured (skills, seniority, category). The backend is MIT-licensed and [self-hostable](https://github.com/strelov1/freehire) — point `FREEHIRE_API_URL` at your own instance if you prefer. See `.agents/skills/freehire-search/SKILL.md`.
+
+For the **UK**, two more portal skills use the boards' official APIs, so there is no markup to break and no terms-of-service grey area. Each needs a free key in `.env` (see `.env.example`):
+
+- **`reed-search`** — [reed.co.uk](https://www.reed.co.uk)'s Jobseeker API. All sectors; filters by town/postcode radius (miles), salary, permanent/contract/temp, full/part time, and direct employer vs agency; `detail` returns the full description, closing date and apply link. See `.agents/skills/reed-search/SKILL.md`.
+- **`adzuna-search`** — the [Adzuna](https://www.adzuna.co.uk) API, which aggregates ads from employer sites and other boards: the broadest single UK source. Server-side recency filter, salary (flagging Adzuna's own estimates), category tags, and other Adzuna markets via `--country`. Search-only: the API has no detail lookup, so full postings are fetched from each result's URL. See `.agents/skills/adzuna-search/SKILL.md`.
 
 ### Salary benchmarking
 

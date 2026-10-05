@@ -16,10 +16,24 @@ const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-/** Fetch HTML with exponential backoff on 429/5xx. Returns "" on a 404. */
-export async function htmlFetch(url: string): Promise<string> {
-  const maxRetries = 6
-  let delay = 500
+/**
+ * LinkedIn throttles the guest endpoints with 429 (and sometimes a bare 500)
+ * when requests come too fast. It is not a parser or code failure: waiting a
+ * minute and running queries one at a time clears it.
+ */
+export class RateLimitedError extends Error {}
+
+/**
+ * Fetch HTML, backing off on 429/5xx. Returns "" on a 404.
+ *
+ * The backoff is deliberately slow (2s, 4s, 8s, 15s; honouring Retry-After).
+ * Rapid retries keep LinkedIn's throttle tripped, so a fast retry loop turns
+ * one 429 into a run of failures.
+ */
+export async function htmlFetch(url: string, opts: { baseDelayMs?: number } = {}): Promise<string> {
+  const maxRetries = 4
+  let delay = opts.baseDelayMs ?? 2000
+  let lastStatus = 0
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const response = await fetch(url, {
       headers: {
@@ -32,12 +46,12 @@ export async function htmlFetch(url: string): Promise<string> {
       signal: AbortSignal.timeout(15000),
     })
     if (response.status === 429 || response.status >= 500) {
-      if (attempt === maxRetries) {
-        throw new Error(`Request failed: ${response.status} ${response.statusText}`)
-      }
-      const jitter = Math.floor(Math.random() * 500)
-      await new Promise((r) => setTimeout(r, delay + jitter))
-      delay = Math.min(delay * 2, 8000)
+      lastStatus = response.status
+      if (attempt === maxRetries) break
+      const retryAfter = parseInt(response.headers.get("retry-after") ?? "", 10)
+      const wait = !isNaN(retryAfter) && retryAfter > 0 ? Math.min(retryAfter * 1000, 60000) : delay
+      await new Promise((r) => setTimeout(r, wait + Math.floor(Math.random() * 500)))
+      delay = Math.min(delay * 2, 15000)
       continue
     }
     if (response.status === 404) return ""
@@ -46,7 +60,10 @@ export async function htmlFetch(url: string): Promise<string> {
     }
     return response.text()
   }
-  throw new Error("Request failed after max retries")
+  throw new RateLimitedError(
+    `LinkedIn is throttling requests (HTTP ${lastStatus} after ${maxRetries + 1} attempts). ` +
+      `Wait a minute, then run LinkedIn queries one at a time rather than in parallel.`,
+  )
 }
 
 export interface JobCard {

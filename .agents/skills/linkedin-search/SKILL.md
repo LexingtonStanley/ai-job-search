@@ -32,6 +32,12 @@ This uses LinkedIn's public job pages; automated access is against LinkedIn's Te
 Service, so **keep volume low and don't use it commercially or for bulk data collection.**
 Run it on your own responsibility.
 
+**Run LinkedIn queries one at a time, not in parallel.** LinkedIn throttles the guest
+endpoints (HTTP 429, sometimes a bare 500) when requests arrive in quick succession.
+The CLI backs off slowly (2s, 4s, 8s, 15s) and, if LinkedIn is still refusing, exits
+with code `RATE_LIMITED`. That means "wait a minute", not "the parser is broken".
+Sequential queries spaced a few seconds apart run cleanly.
+
 ## When to use this skill
 
 - Search for job openings in a given location (any country/city) or remotely

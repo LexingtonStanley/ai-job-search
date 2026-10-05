@@ -70,7 +70,7 @@ For each **enabled** portal skill:
 4. Cap results to ~20 per call using the portal's limit flag.
 5. Use `--format json` for machine-readable output.
 
-Run all portal CLI calls in parallel where possible using the Agent tool. Collect all `results` arrays into a single pool for Step 2, keeping each result tagged with its source portal skill (for Step 2 `detail` lookups).
+Run all portal CLI calls in parallel where possible using the Agent tool: parallel **across** portals, but run each portal's own queries **one after another**. Firing several queries at one portal at once gets you rate-limited (LinkedIn in particular answers bursts with 429s). A `RATE_LIMITED` or `NO_API_KEY` exit code is a reason to skip that portal for this run and say so in Step 5, not a sign the portal is broken. Collect all `results` arrays into a single pool for Step 2, keeping each result tagged with its source portal skill (for Step 2 `detail` lookups).
 
 If a CLI tool exits with a non-zero code, log the error message and continue — do not abort the whole search.
 

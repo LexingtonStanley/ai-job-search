@@ -1,4 +1,4 @@
-import { DETAIL_URL, htmlFetch, parseJobDetail, writeError } from "../helpers.js"
+import { DETAIL_URL, htmlFetch, RateLimitedError, parseJobDetail, writeError } from "../helpers.js"
 
 export interface DetailOpts {
   id: string
@@ -51,7 +51,7 @@ export async function runDetail(opts: DetailOpts): Promise<number> {
     }
     return 0
   } catch (e) {
-    writeError(e instanceof Error ? e.message : String(e), "DETAIL_FAILED")
+    writeError(e instanceof Error ? e.message : String(e), e instanceof RateLimitedError ? "RATE_LIMITED" : "DETAIL_FAILED")
     return 1
   }
 }

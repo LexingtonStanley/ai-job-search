@@ -1,6 +1,7 @@
 import {
   SEARCH_URL,
   htmlFetch,
+  RateLimitedError,
   parseJobCards,
   jobageToTPR,
   workTypeFlag,
@@ -79,7 +80,7 @@ export async function runSearch(opts: SearchOpts): Promise<number> {
     }
     return 0
   } catch (e) {
-    writeError(e instanceof Error ? e.message : String(e), "SEARCH_FAILED")
+    writeError(e instanceof Error ? e.message : String(e), e instanceof RateLimitedError ? "RATE_LIMITED" : "SEARCH_FAILED")
     return 1
   }
 }

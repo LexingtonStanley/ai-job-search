@@ -69,6 +69,9 @@ documents/postings/**
 documents/interview/**
 !documents/**/.gitkeep
 
+# API keys for the portal CLIs (reed-search, adzuna-search). .env.example is the template.
+.env
+
 # Personal job search tracking
 job_search_tracker.csv
 

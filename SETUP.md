@@ -26,7 +26,7 @@ On Windows, `py --version` is often the most reliable check. If your system expo
 
 ### Bun (for job search tools)
 
-The job portal CLIs (four Danish portals plus the country-agnostic `linkedin-search` and `freehire-search` tools) are written in TypeScript and run with Bun.
+The job portal CLIs (four Danish portals, the UK `reed-search` and `adzuna-search` tools, and the country-agnostic `linkedin-search` and `freehire-search` tools) are written in TypeScript and run with Bun.
 
 - macOS/Linux:
 
@@ -166,7 +166,7 @@ Run these from the repository root.
 - PowerShell:
 
 ```powershell
-$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search", "freehire-search")
+$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search", "freehire-search", "reed-search", "adzuna-search")
 foreach ($tool in $tools) {
   Push-Location ".agents/skills/$tool/cli"
   bun install
@@ -176,12 +176,14 @@ foreach ($tool in $tools) {
 
 - Bash / zsh / Git Bash:
 ```bash
-for tool in jobbank-search jobdanmark-search jobindex-search jobnet-search linkedin-search freehire-search; do
+for tool in jobbank-search jobdanmark-search jobindex-search jobnet-search linkedin-search freehire-search reed-search adzuna-search; do
   (cd .agents/skills/$tool/cli && bun install)
 done
 ```
 
-For `linkedin-search` and `freehire-search` the install is optional: both have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+For `linkedin-search`, `freehire-search`, `reed-search` and `adzuna-search` the install is optional: they have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+
+`reed-search` and `adzuna-search` (UK job boards, via their official APIs) each need a free key. Copy `.env.example` to `.env` at the repo root and fill in `REED_API_KEY` (from <https://www.reed.co.uk/developers/jobseeker>) and `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` (from <https://developer.adzuna.com>). `.env` is gitignored. Without keys those two portals report `NO_API_KEY` and `/scrape` carries on with the rest.
 
 If you're outside Denmark, you can generate an equivalent search skill for your local job board with `/add-portal` — it scaffolds the same CLI structure for any public portal and test-runs a live query before registering. See the "Job search tools" section in the README.
 

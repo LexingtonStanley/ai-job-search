@@ -58,6 +58,8 @@ REQUIRED_IGNORE_RULES = [
     "documents/applications/**",
     "documents/interview/**",
     "job_search_tracker.csv",
+    # API keys for the reed-search / adzuna-search portal CLIs.
+    ".env",
 ]
 
 # Negation (re-include) rules the template legitimately ships. .gitignore is
